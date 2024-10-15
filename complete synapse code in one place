@@ -1,0 +1,55 @@
+-- Use the SalesDataPool in Synapse
+USE [SalesDataPool];
+
+-- Create the SalesTransactions table
+CREATE TABLE SalesTransactions
+(
+    TransactionID INT,
+    ProductID INT,
+    CustomerID INT,
+    SalesAmount DECIMAL(18, 2),
+    TransactionDate DATE
+)
+WITH (
+    DISTRIBUTION = HASH(TransactionID),
+    PARTITION (TransactionDate RANGE RIGHT FOR VALUES ('2024-01-01', '2024-02-01', '2024-03-01')),
+    CLUSTERED COLUMNSTORE INDEX
+);
+
+-- Load data into SalesTransactions from ADLS Gen2
+COPY INTO SalesTransactions
+FROM 'abfss://processed-data@mydatalakestorage.dfs.core.windows.net/sales/2024/transactions'
+WITH (
+    FILE_TYPE = 'PARQUET',
+    MAXERRORS = 10,
+    REJECT_TYPE = VALUE,
+    REJECT_VALUE = 0
+);
+
+-- Update statistics for better query optimization
+UPDATE STATISTICS SalesTransactions;
+
+-- Create a materialized view for faster queries
+CREATE MATERIALIZED VIEW mv_SalesSummary
+AS
+SELECT ProductID, 
+       COUNT(*) AS TransactionCount, 
+       SUM(SalesAmount) AS TotalSales, 
+       MIN(TransactionDate) AS FirstTransaction, 
+       MAX(TransactionDate) AS LastTransaction
+FROM SalesTransactions
+GROUP BY ProductID;
+
+-- Query to find top-selling products in January 2024
+SELECT ProductID, 
+       COUNT(*) AS TransactionCount, 
+       SUM(SalesAmount) AS TotalSales
+FROM SalesTransactions
+WHERE TransactionDate >= '2024-01-01' 
+  AND TransactionDate < '2024-02-01'
+GROUP BY ProductID
+ORDER BY TotalSales DESC;
+
+-- Delete old sales data before January 2023
+DELETE FROM SalesTransactions
+WHERE TransactionDate < '2023-01-01';
