@@ -1,0 +1,7 @@
+# Check for missing values
+try:
+    missing_data = raw_df.select([count(when(isnan(c) | col(c).isNull(), c)).alias(c) for c in raw_df.columns])
+    missing_data.show()
+    logger.info("Missing values checked successfully.")
+except Exception as e:
+    logger.error(f"Error checking for missing values: {e}")
