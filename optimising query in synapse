@@ -1,0 +1,16 @@
+-- Update statistics for optimal query performance
+UPDATE STATISTICS SalesTransactions;
+
+
+-- Create a materialized view for faster access to aggregated data
+CREATE MATERIALIZED VIEW mv_SalesSummary
+AS
+SELECT ProductID, 
+       COUNT(*) AS TransactionCount, 
+       SUM(SalesAmount) AS TotalSales, 
+       MIN(TransactionDate) AS FirstTransaction, 
+       MAX(TransactionDate) AS LastTransaction
+FROM SalesTransactions
+GROUP BY ProductID;
+
+
