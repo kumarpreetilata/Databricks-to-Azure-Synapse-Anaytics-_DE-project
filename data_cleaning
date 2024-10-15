@@ -1,0 +1,41 @@
+def remove_duplicates(df):
+    try:
+        return df.dropDuplicates()
+    except Exception as e:
+        logger.error(f"Error removing duplicates: {e}")
+        return df  # Return original DataFrame on error
+
+def fill_missing_numeric(df):
+    numeric_cols = [field for field, dataType in df.dtypes.items() if dataType in ('int', 'double')]
+    for col_name in numeric_cols:
+        mean_value = df.select(col_name).na.drop().agg({col_name: "mean"}).collect()[0][0]
+        df = df.fillna(mean_value, subset=[col_name])
+        logger.info(f"Filled missing values for numeric column: {col_name}")
+    return df
+
+def fill_missing_categorical(df):
+    categorical_cols = [field for field, dataType in df.dtypes.items() if dataType == 'string']
+    for col_name in categorical_cols:
+        mode_value = df.groupby(col_name).count().orderBy("count", ascending=False).first()[0]
+        df = df.fillna(mode_value, subset=[col_name])
+        logger.info(f"Filled missing values for categorical column: {col_name}")
+    return df
+
+def filter_outliers(df, column):
+    try:
+        Q1 = df.approxQuantile(column, [0.25], 0.05)[0]
+        Q3 = df.approxQuantile(column, [0.75], 0.05)[0]
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+        logger.info(f"Filtering outliers for {column}: lower={lower_bound}, upper={upper_bound}")
+        return df.filter((col(column) >= lower_bound) & (col(column) <= upper_bound))
+    except Exception as e:
+        logger.error(f"Error filtering outliers: {e}")
+        return df  # Return original DataFrame on error
+
+# Apply cleaning functions
+cleaned_df = remove_duplicates(raw_df)
+cleaned_df = fill_missing_numeric(cleaned_df)
+cleaned_df = fill_missing_categorical(cleaned_df)
+cleaned_df = filter_outliers(cleaned_df, 'numeric_column_name')  # Replace with actual column name
