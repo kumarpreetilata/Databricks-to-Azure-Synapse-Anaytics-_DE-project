@@ -1,0 +1,13 @@
+# Load raw data from ADLS Gen2
+raw_data_path = "abfss://<container-name>@<storage-account-name>.dfs.core.windows.net/<path-to-raw-data>"
+
+try:
+    raw_df = spark.read.csv(raw_data_path, header=True, inferSchema=True)
+    logger.info("Raw data loaded successfully.")
+except Exception as e:
+    logger.error(f"Error loading raw data: {e}")
+    sys.exit(1)
+
+# Show initial schema and data
+raw_df.printSchema()
+raw_df.show(5)
