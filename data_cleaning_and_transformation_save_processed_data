@@ -39,3 +39,22 @@ cleaned_df = remove_duplicates(raw_df)
 cleaned_df = fill_missing_numeric(cleaned_df)
 cleaned_df = fill_missing_categorical(cleaned_df)
 cleaned_df = filter_outliers(cleaned_df, 'numeric_column_name')  # Replace with actual column name
+
+
+#data_transformation
+try:
+    cleaned_df = cleaned_df.withColumn('new_feature', col('column1') * col('column2'))  # Adjust as needed
+    logger.info("Feature engineering completed.")
+except Exception as e:
+    logger.error(f"Error during feature engineering: {e}")
+
+# Write processed data back to ADLS Gen2
+processed_data_path = "abfss://<container-name>@<storage-account-name>.dfs.core.windows.net/<path-to-processed-data>"
+
+try:
+    cleaned_df.write.mode('overwrite').parquet(processed_data_path)
+    logger.info("Processed data saved successfully.")
+except Exception as e:
+    logger.error(f"Error saving processed data: {e}")
+
+
