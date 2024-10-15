@@ -1,0 +1,25 @@
+import logging
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, when, count, isnan, lit
+import sys
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', stream=sys.stdout)
+logger = logging.getLogger(__name__)
+
+# Initialize Spark session
+spark = SparkSession.builder \
+    .appName("AdvancedDataProcessing") \
+    .getOrCreate()
+
+# Set up ADLS Gen2 credentials (replace placeholders)
+try:
+    spark.conf.set("fs.azure.account.auth.type.<storage-account-name>.dfs.core.windows.net", "OAuth")
+    spark.conf.set("fs.azure.account.oauth.provider.type.<storage-account-name>.dfs.core.windows.net", "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider")
+    spark.conf.set("fs.azure.account.oauth2.client.id.<storage-account-name>.dfs.core.windows.net", "<application-client-id>")
+    spark.conf.set("fs.azure.account.oauth2.client.secret.<storage-account-name>.dfs.core.windows.net", "<client-secret>")
+    spark.conf.set("fs.azure.account.oauth2.client.endpoint.<storage-account-name>.dfs.core.windows.net", "https://login.microsoftonline.com/<tenant-id>/oauth2/token")
+    logger.info("ADLS Gen2 credentials set up successfully.")
+except Exception as e:
+    logger.error(f"Error setting up ADLS Gen2 credentials: {e}")
+    sys.exit(1)
