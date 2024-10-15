@@ -1,0 +1,9 @@
+-- Query to find the top-selling products in January 2024
+SELECT ProductID, 
+       COUNT(*) AS TransactionCount, 
+       SUM(SalesAmount) AS TotalSales
+FROM SalesTransactions
+WHERE TransactionDate >= '2024-01-01' 
+  AND TransactionDate < '2024-02-01'
+GROUP BY ProductID
+ORDER BY TotalSales DESC;
