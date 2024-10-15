@@ -1,0 +1,9 @@
+-- Load data into SalesTransactions from ADLS Gen2
+COPY INTO SalesTransactions
+FROM 'abfss://processed-data@mydatalakestorage.dfs.core.windows.net/sales/2024/transactions'
+WITH (
+    FILE_TYPE = 'PARQUET',  -- Specify the file format
+    MAXERRORS = 10,         -- Allow up to 10 errors before stopping
+    REJECT_TYPE = VALUE,    -- Define how to handle rejected rows
+    REJECT_VALUE = 0        -- 0 means do not load any rows with errors
+);
