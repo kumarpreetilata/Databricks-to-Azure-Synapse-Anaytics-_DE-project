@@ -1,0 +1,14 @@
+-- Create the SalesTransactions table with optimizations
+CREATE TABLE SalesTransactions
+(
+    TransactionID INT,           -- Unique transaction identifier
+    ProductID INT,               -- ID of the product sold
+    CustomerID INT,              -- ID of the customer
+    SalesAmount DECIMAL(18, 2),  -- Total sales amount
+    TransactionDate DATE         -- Date of the transaction
+)
+WITH (
+    DISTRIBUTION = HASH(TransactionID),               -- Hash distribute on TransactionID for better performance
+    PARTITION (TransactionDate RANGE RIGHT FOR VALUES ('2024-01-01', '2024-02-01', '2024-03-01')),  -- Partition by date
+    CLUSTERED COLUMNSTORE INDEX                       -- Compress data and optimize for large datasets
+);
